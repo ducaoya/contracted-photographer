@@ -12,6 +12,12 @@ export const routes = [
     name: 'verify',
     component: () => import('@/views/VerifyView.vue'),
   },
+  // 兜底：未知路径重定向首页，避免空白页
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'not-found',
+    redirect: '/',
+  },
 ]
 
 export function createAppRouter() {
