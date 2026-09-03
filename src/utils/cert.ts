@@ -49,10 +49,18 @@ export function buildVerifyUrl(payload: VerifyPayload): string {
     c: payload.c,
     t: String(payload.t),
   })
-  const origin = typeof window !== 'undefined'
-    ? window.location.origin
-    : 'https://contracted-photographer.example.com'
-  return `${origin}/verify?${params.toString()}`
+  if (typeof window !== 'undefined') {
+    // 用当前页面路径推导部署前缀（如 GitHub Pages 的 /contracted-photographer），
+    // 避免硬编码 origin 导致子路径部署下二维码指向错误地址
+    const { origin, pathname } = window.location
+    // 取路径中最后一个非 'verify' 段之前的目录（兼容 /、/repo/、/repo/verify）
+    const segments = pathname.replace(/\/+$/, '').split('/').filter(Boolean)
+    if (segments.length > 0 && segments[segments.length - 1] !== 'verify') {
+      return `${origin}/${segments.join('/')}/verify?${params.toString()}`
+    }
+    return `${origin}/verify?${params.toString()}`
+  }
+  return `https://contracted-photographer.example.com/verify?${params.toString()}`
 }
 
 /** 解析 /verify 页查询参数 */
