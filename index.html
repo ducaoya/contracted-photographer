@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="签约摄影师认证 — 完成签约，获得专属认证铭牌与可验证的电子证书" />
+    <title>签约摄影师认证 · Contracted Photographer</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%B7%3C/text%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Noto+Serif+SC:wght@600;700;900&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* ============ 静态 Loading 页（零 JS 依赖，内联防白屏）· 暗黑白透明度 ============ */
+      #app-loading {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 42px;
+        background: #0a0a0b;
+        color: rgba(255, 255, 255, 0.96);
+        font-family: 'Noto Sans SC', system-ui, sans-serif;
+        transition: opacity 0.6s ease, visibility 0.6s ease;
+      }
+      #app-loading.is-ready {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+      /* 快门光圈：白色透明度圆环 */
+      .shutter {
+        position: relative;
+        width: 120px;
+        height: 120px;
+      }
+      .shutter-ring {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.24);
+        border-top-color: rgba(255, 255, 255, 0.9);
+        animation: spin 1.8s linear infinite;
+      }
+      .shutter-ring.ring-2 {
+        inset: -16px;
+        border-color: rgba(255, 255, 255, 0.1);
+        border-bottom-color: rgba(255, 255, 255, 0.5);
+        animation: spin 3.2s linear infinite reverse;
+      }
+      .shutter-core {
+        position: absolute;
+        inset: 32px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02) 70%);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        animation: breathe 2.4s ease-in-out infinite;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      @keyframes breathe {
+        0%, 100% { transform: scale(1); border-color: rgba(255,255,255,0.16); }
+        50% { transform: scale(1.05); border-color: rgba(255,255,255,0.4); }
+      }
+      /* 文案与进度 */
+      .loading-text {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+      }
+      .loading-title {
+        font-family: 'Noto Serif SC', serif;
+        font-size: 19px;
+        letter-spacing: 0.5em;
+        text-indent: 0.5em;
+        color: rgba(255, 255, 255, 0.9);
+      }
+      .loading-sub {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10px;
+        letter-spacing: 0.34em;
+        color: rgba(255, 255, 255, 0.4);
+        text-transform: uppercase;
+      }
+      .loading-bar {
+        width: 180px;
+        height: 1px;
+        background: rgba(255, 255, 255, 0.1);
+        overflow: hidden;
+        position: relative;
+      }
+      .loading-bar::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        width: 40%;
+        background: rgba(255, 255, 255, 0.8);
+        animation: sweep 1.4s ease-in-out infinite;
+      }
+      @keyframes sweep {
+        0% { transform: translateX(-110%); }
+        100% { transform: translateX(280%); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .shutter-ring, .shutter-core, .loading-bar::after { animation: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <!-- 静态 Loading：JS 未加载/执行前立即可见 -->
+    <div id="app-loading">
+      <div class="shutter">
+        <div class="shutter-ring ring-2"></div>
+        <div class="shutter-ring"></div>
+        <div class="shutter-core"></div>
+      </div>
+      <div class="loading-text">
+        <div class="loading-title">签约认证</div>
+        <div class="loading-bar"></div>
+        <div class="loading-sub">Establishing Trust · 建立信任连接</div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,30 @@
+{
+  "name": "contracted-photographer",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc -b && vite-ssg build",
+    "build:fast": "vite-ssg build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "qrcode": "^1.5.4",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/qrcode": "^1.5.6",
+    "@types/three": "^0.185.4",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "gsap": "^3.12.7",
+    "html-to-image": "^1.11.11",
+    "three": "^0.172.0",
+    "typescript": "~5.7.2",
+    "vite": "^6.0.7",
+    "vite-ssg": "^28.3.0",
+    "vue-tsc": "^2.2.0"
+  }
+}
