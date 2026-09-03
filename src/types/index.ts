@@ -16,8 +16,8 @@ export interface TemplateMeta {
 }
 
 export const TEMPLATES: TemplateMeta[] = [
-  { id: 'noir', label: '黑金典藏', desc: '奢华质感 · 仪式典藏' },
   { id: 'studio', label: '纯白极简', desc: '极简留白 · 工作室风' },
+  { id: 'noir', label: '黑金典藏', desc: '奢华质感 · 仪式典藏' },
 ]
 
 /** 证书编号：姓名 + 时间戳哈希生成的唯一编号 */

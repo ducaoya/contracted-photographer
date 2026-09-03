@@ -25,7 +25,7 @@ interface DraftData {
 }
 
 const profile = ref<PhotographerProfile>(defaultProfile())
-const template = ref<TemplateId>('noir')
+const template = ref<TemplateId>('studio')
 /** 签约身份（编号+时间戳）：点击「签署合约」后生成 */
 const identity = ref<CertIdentity | null>(null)
 /** 签约进行中（模拟服务处理） */
@@ -122,7 +122,7 @@ export function useProfile() {
   function reset() {
     profile.value = defaultProfile()
     identity.value = null
-    template.value = 'noir'
+    template.value = 'studio'
   }
 
   // 自动暂存（防抖）

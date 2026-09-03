@@ -64,51 +64,88 @@ function fillToN(pts: Pt[], n: number): Pt[] {
 }
 
 /* ============ 摄影主题形状 ============ */
-/** 相机：机身 + 取景器 + 双环镜头 + 快门 + 热靴 */
+/** 相机：机身 + 取景器 + 镜头 + 快门 + 热靴（按周长均匀分配粒子密度） */
 function buildCamera(n: number): Pt[] {
+  // 各部件几何定义：[周长, 权重]
+  const body = { w: 1.3, h: 0.74 } // 机身
+  const finder = { w: 0.42, h: 0.14 } // 取景器
+  const lensR = 0.2 // 镜头半径
+  const parts: Array<() => Pt[]> = []
+
+  const perimBody = 2 * (body.w + body.h)
+  const perimFinder = 2 * (finder.w + finder.h)
+  const perimLens = 2 * Math.PI * lensR
+  const perimShutter = 0.14
+  const perimHotshoe = 2 * (0.17 + 0.05)
+
+  // 总周长 → 按比例分配（机身占主导）
+  const totalPerim = perimBody + perimFinder + perimLens + perimShutter + perimHotshoe
+  const nBody = Math.floor((perimBody / totalPerim) * n)
+  const nFinder = Math.floor((perimFinder / totalPerim) * n)
+  const nLens = Math.floor((perimLens / totalPerim) * n)
+  const nShutter = Math.max(Math.floor((perimShutter / totalPerim) * n), 5)
+  const nHotshoe = Math.max(Math.floor((perimHotshoe / totalPerim) * n), 8)
+
   const pts: Pt[] = []
-  pts.push(...sampleRect(-0.64, -0.36, 1.28, 0.72, Math.floor(n * 0.34)))
-  pts.push(...sampleRect(-0.2, 0.36, 0.4, 0.13, Math.floor(n * 0.07)))
-  pts.push(...sampleCircle(0, 0, 0.21, Math.floor(n * 0.2)))
-  pts.push(...sampleCircle(0, 0, 0.1, Math.floor(n * 0.11)))
-  pts.push(...sampleLine(0.4, 0.36, 0.4, 0.5, Math.max(Math.floor(n * 0.03), 4)))
-  pts.push(...sampleRect(-0.08, 0.49, 0.16, 0.05, Math.max(Math.floor(n * 0.04), 6)))
+  // 机身（主体，占 ~66%）
+  pts.push(...sampleRect(-body.w / 2, -body.h / 2, body.w, body.h, nBody))
+  // 取景器（顶部凸起）
+  pts.push(...sampleRect(-finder.w / 2, body.h / 2, finder.w, finder.h, nFinder))
+  // 镜头（单环，弱化为中心小圆，不再叠加双环）
+  pts.push(...sampleCircle(0, 0, lensR, nLens))
+  // 快门按钮（右上小凸起）
+  pts.push(...sampleLine(0.42, body.h / 2, 0.42, body.h / 2 + 0.14, nShutter))
+  // 热靴（顶部小矩形）
+  pts.push(...sampleRect(-0.085, body.h / 2 + finder.h, 0.17, 0.05, nHotshoe))
+
+  void parts
   return fillToN(pts, n)
 }
 
-/** 光圈：同心环 + 六片叶片 */
-function buildAperture(n: number): Pt[] {
+/** 闪光灯：横向灯头 + 反射碗 + 热靴底座 + 两侧光束 */
+function buildFlash(n: number): Pt[] {
   const pts: Pt[] = []
-  pts.push(...sampleCircle(0, 0, 0.52, Math.floor(n * 0.28)))
-  pts.push(...sampleCircle(0, 0, 0.36, Math.floor(n * 0.18)))
-  pts.push(...sampleCircle(0, 0, 0.09, Math.floor(n * 0.08)))
-  for (let k = 0; k < 6; k++) {
-    const a = (k / 6) * Math.PI * 2
-    pts.push(...sampleLine(
-      Math.cos(a) * 0.09,
-      Math.sin(a) * 0.09,
-      Math.cos(a + 0.55) * 0.36,
-      Math.sin(a + 0.55) * 0.36,
-      Math.floor(n * 0.04),
-    ))
-  }
+  // 横向长条灯头（明显宽扁，区别于光圈的圆形）
+  pts.push(...sampleRect(-0.72, -0.26, 1.44, 0.52, Math.floor(n * 0.32)))
+  // 灯头内两条横向灯管
+  pts.push(...sampleLine(-0.56, -0.1, 0.56, -0.1, Math.floor(n * 0.08)))
+  pts.push(...sampleLine(-0.56, 0.1, 0.56, 0.1, Math.floor(n * 0.08)))
+  // 两端竖向封边
+  pts.push(...sampleLine(-0.72, -0.26, -0.72, 0.26, Math.floor(n * 0.03)))
+  pts.push(...sampleLine(0.72, -0.26, 0.72, 0.26, Math.floor(n * 0.03)))
+  // 中央反射碗（半圆朝下）
+  pts.push(...sampleCircle(0, 0.26, 0.16, Math.floor(n * 0.1), Math.PI, Math.PI * 2))
+  // 热靴底座（下方梯形双层）
+  pts.push(...sampleRect(-0.14, 0.26, 0.28, 0.1, Math.floor(n * 0.05)))
+  pts.push(...sampleRect(-0.08, 0.36, 0.16, 0.08, Math.floor(n * 0.04)))
+  // 两侧斜向光束（短促，从灯头两端向外上发散）
+  pts.push(...sampleLine(-0.78, -0.1, -1.02, -0.3, Math.floor(n * 0.04)))
+  pts.push(...sampleLine(0.78, -0.1, 1.02, -0.3, Math.floor(n * 0.04)))
+  pts.push(...sampleLine(-0.78, 0.05, -1.05, 0.02, Math.floor(n * 0.03)))
+  pts.push(...sampleLine(0.78, 0.05, 1.05, 0.02, Math.floor(n * 0.03)))
   return fillToN(pts, n)
 }
 
-/** 胶片：上下片轨 + 齿孔 + 分帧线 */
+/** 胶片：宽片轨 + 大齿孔 + 分帧线 + 片头 */
 function buildFilm(n: number): Pt[] {
   const pts: Pt[] = []
-  pts.push(...sampleLine(-0.78, 0.36, 0.78, 0.36, Math.floor(n * 0.15)))
-  pts.push(...sampleLine(-0.78, -0.36, 0.78, -0.36, Math.floor(n * 0.15)))
-  for (let i = 0; i < 7; i++) {
-    const x = -0.64 + i * 0.213
-    pts.push(...sampleCircle(x, 0.25, 0.045, Math.floor(n * 0.018)))
-    pts.push(...sampleCircle(x, -0.25, 0.045, Math.floor(n * 0.018)))
+  // 上下片轨（长横线）
+  pts.push(...sampleLine(-0.95, 0.42, 0.95, 0.42, Math.floor(n * 0.14)))
+  pts.push(...sampleLine(-0.95, -0.42, 0.95, -0.42, Math.floor(n * 0.14)))
+  // 齿孔：上下两排矩形孔（胶片最典型特征，加大尺寸）
+  for (let i = 0; i < 8; i++) {
+    const x = -0.84 + i * 0.24
+    pts.push(...sampleRect(x, 0.28, 0.13, 0.1, Math.floor(n * 0.022)))
+    pts.push(...sampleRect(x, -0.38, 0.13, 0.1, Math.floor(n * 0.022)))
   }
+  // 分帧线：三帧竖线
   for (let i = 0; i < 3; i++) {
-    const x = -0.26 + i * 0.26
-    pts.push(...sampleLine(x, -0.13, x, 0.13, Math.floor(n * 0.012)))
+    const x = -0.36 + i * 0.36
+    pts.push(...sampleLine(x, -0.16, x, 0.16, Math.floor(n * 0.014)))
   }
+  // 帧内对角线（暗示画面）
+  pts.push(...sampleLine(-0.36, -0.16, 0, 0.16, Math.floor(n * 0.012)))
+  pts.push(...sampleLine(0, -0.16, 0.36, 0.16, Math.floor(n * 0.012)))
   return fillToN(pts, n)
 }
 
@@ -168,7 +205,7 @@ export function createParticleScene(options: ParticleSceneOptions) {
 
   /* ---------- 主题形态粒子 ---------- */
   const N = isMobile ? 1000 : 1800
-  const shapeFns = [buildCamera, buildAperture, buildFilm, buildStars]
+  const shapeFns = [buildCamera, buildFlash, buildFilm, buildStars]
   const shapes = shapeFns.map(fn => fn(N))
 
   const cur = new Float32Array(N * 3)
@@ -197,7 +234,8 @@ export function createParticleScene(options: ParticleSceneOptions) {
     targets[i3 + 2] = cur[i3 + 2]
     ease[i] = 0.018 + Math.random() * 0.03
     phase[i] = Math.random() * Math.PI * 2
-    const c = 0.5 + Math.random() * 0.5
+    // 弱化亮度：低区间随机灰度，避免压过文案
+    const c = 0.22 + Math.random() * 0.3
     colors[i3] = c
     colors[i3 + 1] = c
     colors[i3 + 2] = c
@@ -210,7 +248,7 @@ export function createParticleScene(options: ParticleSceneOptions) {
     size: 0.031,
     vertexColors: true,
     transparent: true,
-    opacity: 0.8,
+    opacity: 0.38,
     depthWrite: false,
     blending: THREE.AdditiveBlending,
     sizeAttenuation: true,
@@ -238,7 +276,7 @@ export function createParticleScene(options: ParticleSceneOptions) {
     size: 0.02,
     color: 0xffffff,
     transparent: true,
-    opacity: 0.28,
+    opacity: 0.14,
     depthWrite: false,
     sizeAttenuation: true,
   })

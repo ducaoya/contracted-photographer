@@ -3,11 +3,8 @@ import Vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite'
 
 export default defineConfig(({ mode }) => ({
-  // GitHub Pages 项目页需要以仓库名为 base；本地/自定义域名部署用 '/'
-  base:
-    process.env.GITHUB_ACTIONS === 'true'
-      ? '/contracted-photographer/'
-      : '/',
+  // 相对路径 base：本地预览、GitHub Pages 项目页、任意子路径部署均可用
+  base: './',
   plugins: [Vue()],
   resolve: {
     alias: {

@@ -44,6 +44,9 @@ defineExpose({ triggerBurst: () => scene?.triggerBurst() })
   inset: 0;
   z-index: 0;
   pointer-events: none;
+  /* 顶部轻微渐隐，保证 Hero 文案对比度 */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 88%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 88%, transparent 100%);
 }
 
 .particle-bg :global(canvas) {
