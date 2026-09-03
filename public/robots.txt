@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ducaoya.github.io/contracted-photographer/sitemap.xml
