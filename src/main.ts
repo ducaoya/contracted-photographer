@@ -24,6 +24,17 @@ export const createApp = ViteSSG(
           desc.setAttribute('content', meta.description)
       }
     })
+
+    // Loading 退出兜底：应用创建后固定延时强制退出，确保绝不卡在 Loading
+    if (typeof document !== 'undefined') {
+      window.setTimeout(() => {
+        const el = document.getElementById('app-loading')
+        if (el && !el.classList.contains('is-ready'))
+          el.classList.add('is-ready')
+        window.setTimeout(() => document.getElementById('app-loading')?.remove(), 800)
+      }, 1200)
+    }
+
     void app
   },
 )
