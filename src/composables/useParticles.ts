@@ -102,54 +102,49 @@ function buildCamera(n: number): Pt[] {
   return fillToN(pts, n)
 }
 
-/** 闪光灯：横向灯头 + 反射碗 + 热靴底座 + 两侧光束 */
+/** 闪光灯：竖向机顶灯 —— 顶部放射光束 + 横向灯头 + 竖向支架 + 底座（干字形，与圆形彻底区分） */
 function buildFlash(n: number): Pt[] {
   const pts: Pt[] = []
-  // 横向长条灯头（明显宽扁，区别于光圈的圆形）
-  pts.push(...sampleRect(-0.72, -0.26, 1.44, 0.52, Math.floor(n * 0.32)))
+  // 横向灯头（矩形，位于中上部）
+  pts.push(...sampleRect(-0.5, -0.42, 1.0, 0.42, Math.floor(n * 0.34)))
   // 灯头内两条横向灯管
-  pts.push(...sampleLine(-0.56, -0.1, 0.56, -0.1, Math.floor(n * 0.08)))
-  pts.push(...sampleLine(-0.56, 0.1, 0.56, 0.1, Math.floor(n * 0.08)))
-  // 两端竖向封边
-  pts.push(...sampleLine(-0.72, -0.26, -0.72, 0.26, Math.floor(n * 0.03)))
-  pts.push(...sampleLine(0.72, -0.26, 0.72, 0.26, Math.floor(n * 0.03)))
-  // 中央反射碗（半圆朝下）
-  pts.push(...sampleCircle(0, 0.26, 0.16, Math.floor(n * 0.1), Math.PI, Math.PI * 2))
-  // 热靴底座（下方梯形双层）
-  pts.push(...sampleRect(-0.14, 0.26, 0.28, 0.1, Math.floor(n * 0.05)))
-  pts.push(...sampleRect(-0.08, 0.36, 0.16, 0.08, Math.floor(n * 0.04)))
-  // 两侧斜向光束（短促，从灯头两端向外上发散）
-  pts.push(...sampleLine(-0.78, -0.1, -1.02, -0.3, Math.floor(n * 0.04)))
-  pts.push(...sampleLine(0.78, -0.1, 1.02, -0.3, Math.floor(n * 0.04)))
-  pts.push(...sampleLine(-0.78, 0.05, -1.05, 0.02, Math.floor(n * 0.03)))
-  pts.push(...sampleLine(0.78, 0.05, 1.05, 0.02, Math.floor(n * 0.03)))
+  pts.push(...sampleLine(-0.38, -0.3, 0.38, -0.3, Math.floor(n * 0.07)))
+  pts.push(...sampleLine(-0.38, -0.12, 0.38, -0.12, Math.floor(n * 0.07)))
+  // 顶部放射光束（三道，从灯头顶部向上发散）
+  pts.push(...sampleLine(-0.25, -0.5, -0.45, -0.78, Math.floor(n * 0.05)))
+  pts.push(...sampleLine(0, -0.5, 0, -0.85, Math.floor(n * 0.05)))
+  pts.push(...sampleLine(0.25, -0.5, 0.45, -0.78, Math.floor(n * 0.05)))
+  // 竖向支架（灯头下方中央）
+  pts.push(...sampleLine(0, 0, 0, 0.3, Math.floor(n * 0.04)))
+  // 底座（横向小矩形）
+  pts.push(...sampleRect(-0.22, 0.3, 0.44, 0.14, Math.floor(n * 0.08)))
   return fillToN(pts, n)
 }
 
 /** 胶片：宽片轨 + 大齿孔 + 分帧线 + 片头 */
 function buildFilm(n: number): Pt[] {
   const pts: Pt[] = []
-  // 上下片轨（长横线）
-  pts.push(...sampleLine(-0.95, 0.42, 0.95, 0.42, Math.floor(n * 0.14)))
-  pts.push(...sampleLine(-0.95, -0.42, 0.95, -0.42, Math.floor(n * 0.14)))
+  // 上下片轨（长横线，收窄让粒子更密集清晰）
+  pts.push(...sampleLine(-0.82, 0.4, 0.82, 0.4, Math.floor(n * 0.15)))
+  pts.push(...sampleLine(-0.82, -0.4, 0.82, -0.4, Math.floor(n * 0.15)))
   // 齿孔：上下两排矩形孔（胶片最典型特征，加大尺寸）
-  for (let i = 0; i < 8; i++) {
-    const x = -0.84 + i * 0.24
-    pts.push(...sampleRect(x, 0.28, 0.13, 0.1, Math.floor(n * 0.022)))
-    pts.push(...sampleRect(x, -0.38, 0.13, 0.1, Math.floor(n * 0.022)))
+  for (let i = 0; i < 7; i++) {
+    const x = -0.7 + i * 0.233
+    pts.push(...sampleRect(x, 0.24, 0.15, 0.12, Math.floor(n * 0.024)))
+    pts.push(...sampleRect(x, -0.36, 0.15, 0.12, Math.floor(n * 0.024)))
   }
   // 分帧线：三帧竖线
   for (let i = 0; i < 3; i++) {
-    const x = -0.36 + i * 0.36
-    pts.push(...sampleLine(x, -0.16, x, 0.16, Math.floor(n * 0.014)))
+    const x = -0.31 + i * 0.31
+    pts.push(...sampleLine(x, -0.14, x, 0.14, Math.floor(n * 0.014)))
   }
   // 帧内对角线（暗示画面）
-  pts.push(...sampleLine(-0.36, -0.16, 0, 0.16, Math.floor(n * 0.012)))
-  pts.push(...sampleLine(0, -0.16, 0.36, 0.16, Math.floor(n * 0.012)))
+  pts.push(...sampleLine(-0.31, -0.14, 0, 0.14, Math.floor(n * 0.012)))
+  pts.push(...sampleLine(0, -0.14, 0.31, 0.14, Math.floor(n * 0.012)))
   return fillToN(pts, n)
 }
 
-/** 星尘：随机散布（页脚收尾） */
+/** 星尘：随机散布（备用形态，当前未启用） */
 function buildStars(n: number): Pt[] {
   const pts: Pt[] = []
   for (let i = 0; i < n; i++) {
@@ -159,6 +154,7 @@ function buildStars(n: number): Pt[] {
   }
   return pts
 }
+void buildStars
 
 /* ============ 场景 ============ */
 const SHAPE_SCALE = 1.18
@@ -172,10 +168,8 @@ function getActiveIndex(): number {
     if (el && el.offsetTop <= mid)
       idx = i
   })
-  const footer = document.querySelector('footer')
-  if (footer && (footer as HTMLElement).offsetTop <= mid)
-    idx = 3
-  return idx
+  // 页脚及以下保持胶片形态（最后一个形态）
+  return Math.min(idx, SECTION_IDS.length - 1)
 }
 
 /**
@@ -205,7 +199,8 @@ export function createParticleScene(options: ParticleSceneOptions) {
 
   /* ---------- 主题形态粒子 ---------- */
   const N = isMobile ? 1000 : 1800
-  const shapeFns = [buildCamera, buildFlash, buildFilm, buildStars]
+  // 三形态：相机（Hero）→ 闪光灯（特性区）→ 胶片（签约区及页脚）
+  const shapeFns = [buildCamera, buildFlash, buildFilm]
   const shapes = shapeFns.map(fn => fn(N))
 
   const cur = new Float32Array(N * 3)
