@@ -19,6 +19,24 @@ const injected = ref(false)
 const enabled = ref(false)
 
 /**
+ * gtag.js 加载完成前排队的事件。
+ * 实测：gtag.js 不会回放加载前入队 dataLayer 的 event（仅处理 js/config），
+ * 首屏 page_view 会因异步加载竞态丢失，因此需自行缓冲、就绪后补发。
+ */
+interface PendingHit {
+  name: string
+  params?: EventParams
+}
+const pendingHits: PendingHit[] = []
+/** 排队上限：防止脚本被拦截器长期阻塞时无限增长 */
+const MAX_PENDING_HITS = 50
+
+/** 真正发送事件（仅在 gtag.js 就绪后调用） */
+function sendEvent(name: string, params?: EventParams): void {
+  window.gtag!('event', name, params ?? {})
+}
+
+/**
  * 注入 gtag.js（动态加载，不阻塞首屏）。
  * 幂等：多次调用只注入一次。
  */
@@ -35,9 +53,12 @@ export function initAnalytics(): void {
   injected.value = true
 
   // 标准 gtag 引导片段
+  // 注意：必须用 arguments 形态（与官方片段一致）。
+  // 实测：push 真数组会导致 gtm.js 静默丢弃 config 事件，
+  // _ga cookie 不创建，后续所有事件永远不被发送
   window.dataLayer = window.dataLayer || []
-  window.gtag = function gtag(...args: unknown[]) {
-    window.dataLayer!.push(args)
+  window.gtag = function gtag() {
+    (window.dataLayer as unknown[]).push(arguments)
   }
   window.gtag('js', new Date())
   window.gtag('config', GA_MEASUREMENT_ID, {
@@ -50,6 +71,37 @@ export function initAnalytics(): void {
   script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`
   script.onload = () => {
     enabled.value = true
+    const dl = window.dataLayer!
+
+    const flushPending = () => {
+      for (const hit of pendingHits.splice(0))
+        sendEvent(hit.name, hit.params)
+    }
+    const hasGtmLoad = () =>
+      dl.some(e => e !== null && typeof e === 'object' && (e as { event?: string }).event === 'gtm.load')
+
+    // 实测：gtm.js 初始化完成（gtm.load）之前收到的事件会被静默丢弃，
+    // 因此拦截 dataLayer.push，等 gtm.load 入队后立即补发
+    if (hasGtmLoad()) {
+      flushPending()
+      return
+    }
+    const rawPush = dl.push.bind(dl)
+    dl.push = (...args: unknown[]) => {
+      const result = rawPush(...args)
+      const entry = args[0] as { event?: string } | undefined
+      if (entry && entry.event === 'gtm.load') {
+        dl.push = rawPush
+        flushPending()
+      }
+      return result
+    }
+    // 兜底：gtm.load 异常（如被拦截器干扰）时 5 秒后强制补发
+    window.setTimeout(() => {
+      if (dl.push !== rawPush)
+        dl.push = rawPush
+      flushPending()
+    }, 5000)
   }
   script.onerror = () => {
     console.warn('[analytics] gtag.js 加载失败（可能被广告拦截器阻止）')
@@ -59,13 +111,22 @@ export function initAnalytics(): void {
 
 /** 上报页面浏览（SPA 路由变化时调用） */
 export function trackPageview(path: string, title: string): void {
-  if (!enabled.value || !window.gtag)
+  if (!injected.value)
     return
-  window.gtag('event', 'page_view', {
+  const params = {
     page_title: title,
     page_path: path,
     page_location: window.location.href,
-  })
+  }
+  if (!enabled.value) {
+    // 脚本仍在加载：只保留最新一次 page_view，加载完成后补发
+    const i = pendingHits.findIndex(hit => hit.name === 'page_view')
+    if (i !== -1)
+      pendingHits.splice(i, 1)
+    pendingHits.push({ name: 'page_view', params })
+    return
+  }
+  sendEvent('page_view', params)
 }
 
 /** 业务事件参数 */
@@ -78,9 +139,15 @@ export interface EventParams {
  * 事件名遵循 GA4 规范：小写 + 下划线，长度 ≤ 40 字符。
  */
 export function trackEvent(name: string, params?: EventParams): void {
-  if (!enabled.value || !window.gtag)
+  if (!injected.value)
     return
-  window.gtag('event', name, params ?? {})
+  if (!enabled.value) {
+    // 脚本仍在加载：入队，加载完成后按序补发
+    if (pendingHits.length < MAX_PENDING_HITS)
+      pendingHits.push({ name, params })
+    return
+  }
+  sendEvent(name, params)
 }
 
 /** 统计状态（调试用） */
