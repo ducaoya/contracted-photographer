@@ -4,6 +4,7 @@ import type { CertIdentity, PhotographerProfile, TemplateId } from '@/types'
 import { formatSignedDate } from '@/utils/cert'
 import { generateVerifyQr } from '@/utils/qr'
 import { buildVerifyUrl } from '@/utils/cert'
+import { trackEvent } from '@/composables/useAnalytics'
 
 const props = defineProps<{
   profile: PhotographerProfile
@@ -59,6 +60,7 @@ function onPointerLeave() {
 
 function toggleFlip() {
   flipped.value = !flipped.value
+  trackEvent('badge_flip', { to: flipped.value ? 'back' : 'front', template: props.template })
 }
 
 function resetFlip() {

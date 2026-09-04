@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import type { VerifyPayload } from '@/types'
 import { formatSignedDate, parseVerifyQuery } from '@/utils/cert'
 import { useGsap } from '@/composables/useGsap'
+import { trackEvent } from '@/composables/useAnalytics'
 
 const route = useRoute()
 
@@ -15,6 +16,13 @@ onMounted(async () => {
   const query = typeof route.query === 'object' ? window.location.search : ''
   payload.value = parseVerifyQuery(query)
   checking.value = false
+
+  // 上报验证来源（referrer 为扫码进入的浏览器 app 时通常为空）
+  trackEvent('cert_verify', {
+    valid: payload.value !== null,
+    from_scan: document.referrer === '' || document.referrer.includes('google'),
+    referrer: document.referrer || 'direct',
+  })
 
   // 入场动效
   const gsap = await useGsap()

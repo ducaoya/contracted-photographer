@@ -4,6 +4,7 @@ import type { CertIdentity, PhotographerProfile, TemplateId } from '@/types'
 import { TEMPLATES } from '@/types'
 import { useGsap } from '@/composables/useGsap'
 import { useProfile } from '@/composables/useProfile'
+import { trackEvent } from '@/composables/useAnalytics'
 import BadgeCard from '@/components/BadgeCard.vue'
 import { exportBadgePng } from '@/utils/export'
 
@@ -34,6 +35,7 @@ const canExport = computed(() => !!props.identity && props.profile.name.trim().l
 async function switchTemplate(id: TemplateId) {
   if (id === props.template)
     return
+  trackEvent('template_switch', { from: props.template, to: id })
   const gsap = await useGsap()
   const el = cardElRef.value?.querySelector('.badge-card-3d') ?? cardElRef.value
   if (!gsap || !el) {
@@ -73,6 +75,10 @@ async function onExport() {
       name: props.profile.name,
       template: props.template,
     })
+    trackEvent('badge_export', {
+      template: props.template,
+      has_avatar: !!props.profile.avatar,
+    })
     showToast('✓ 已导出正反两面铭牌')
   }
   catch (e) {
@@ -87,6 +93,7 @@ async function onExport() {
 function onPrint() {
   if (!canExport.value)
     return
+  trackEvent('badge_print', { template: props.template })
   badgeRef.value?.resetFlip()
   document.body.classList.add('printing')
   const cleanup = () => {

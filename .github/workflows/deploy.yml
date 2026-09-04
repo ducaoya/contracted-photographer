@@ -37,6 +37,8 @@ jobs:
         env:
           # 让 vite.config.ts 中的 base 生效为 /contracted-photographer/
           GITHUB_ACTIONS: 'true'
+          # GA4 计量 ID（Settings → Secrets and variables → Actions 中配置 VITE_GA_ID）
+          VITE_GA_ID: ${{ secrets.VITE_GA_ID }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

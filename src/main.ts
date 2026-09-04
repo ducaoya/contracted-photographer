@@ -1,6 +1,7 @@
 import { ViteSSG } from 'vite-ssg'
 import App from './App.vue'
 import { routes } from './router'
+import { initAnalytics, trackPageview } from './composables/useAnalytics'
 import './styles/main.css'
 
 export const createApp = ViteSSG(
@@ -11,7 +12,11 @@ export const createApp = ViteSSG(
     base: import.meta.env.BASE_URL,
   },
   ({ app, router }) => {
+    // GA4 初始化（未配置 VITE_GA_ID 时为 no-op）
+    initAnalytics()
+
     // SEO：客户端路由切换时同步 document title 与 meta description（仅浏览器环境）
+    // 并上报 GA4 页面浏览
     router.afterEach((to) => {
       if (typeof document === 'undefined')
         return
@@ -23,6 +28,7 @@ export const createApp = ViteSSG(
         if (desc)
           desc.setAttribute('content', meta.description)
       }
+      trackPageview(to.path, meta?.title ?? document.title)
     })
 
     // Loading 退出兜底：应用创建后固定延时强制退出，确保绝不卡在 Loading
